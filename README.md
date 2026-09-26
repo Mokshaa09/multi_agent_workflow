@@ -113,16 +113,21 @@ python main.py "What is the James Webb Space Telescope and what has it discovere
 - **Revisions used:** 0 / 2
 - **Sources:** `marathonhandbook.com/how-fast-can-a-cheetah-run`, `cheetah.org/uk/cheetahfacts`
 
-### Example 3 — Topic where sources were incomplete (Writer stayed honest instead of guessing)
+### Example 3 — The reject → revise cycle actually firing, twice, then succeeding
 **Topic:** `What are the health benefits of drinking green tea, and how much research supports them?`
 
+**What happened:**
+- **1st draft rejected:** claimed a "lower chance" of cognitive impairment without the specific statistic (64%) that was actually in the source.
+- **1st revision rejected too:** claimed green tea helps with "fat burning," but the source only said it "positively influences metabolism" when combined with exercise — a different, more specific claim than "fat burning."
+- **2nd revision approved.**
+
 **Final draft:**
-> Based on the provided source material, there is a reference to "10 Evidence-Based Benefits of Green Tea" and "5 Science-Backed Way," indicating that evidence exists regarding the subject. However, the provided text does not contain any specific details regarding what those health benefits are or the exact amount of research supporting them.
+> Green tea is often touted as one of the healthiest beverages, containing plant-based antioxidant compounds called catechins, such as EGCG, which help prevent cell damage. Research also suggests that drinking green tea may benefit cognition, mood, and brain function due to compounds like caffeine and L-theanine. Additionally, a 2022 review found that green tea's ability to positively influence metabolism is enhanced when combined with aerobic or resistance exercise.
 
 - **Approved:** True
-- **Revisions used:** 0 / 2
-- **Sources:** `goodrx.com/well-being/diet-nutrition/the-health-benefits-green-tea` (returned 0 characters — likely JavaScript-rendered), `healthline.com/nutrition/top-10-evidence-based-health-benefits-of-green-tea`
-- **Notable:** rather than inventing plausible-sounding health claims, the Writer explicitly said the source material didn't contain enough detail to answer fully. This is a good outcome, not a failure — the system is designed to prefer an honest incomplete answer over a fabricated confident one.
+- **Revisions used:** 2 / 2 (used the full budget, succeeded right at the cap)
+- **Sources:** `goodrx.com/well-being/diet-nutrition/the-health-benefits-green-tea`, `healthline.com/nutrition/top-10-evidence-based-health-benefits-of-green-tea`
+- **This is the clearest real evidence of the conditional edge working.** Two different rejection reasons, two successful corrections, and a final answer that only keeps claims the Fact-Checker could verify.
 
 ### Example 4 — Comparison across multiple named things (approved first try)
 **Topic:** `How many moons does Jupiter have compared to Saturn?`
@@ -136,6 +141,4 @@ python main.py "What is the James Webb Space Telescope and what has it discovere
 
 ## What these examples show together
 
-Across 4 runs on varied topics, the Fact-Checker consistently did its job: approving clean, well-supported drafts (Examples 1, 2, 4), and specifically pushing the Writer toward **honesty over invention** when a source didn't fully answer the question (Example 3) rather than letting it fabricate plausible-sounding specifics.
-
-The reject → revise → give-up path (the conditional edge looping back to the Writer, then giving up gracefully after `max_revisions` is reached) is implemented in `graph.py`'s `route_after_fact_check()` and was verified working during development: when the Writer misattributed a statistic to the wrong subject, the Fact-Checker caught it, sent it back for revision, caught the same class of error a second time, and the graph correctly stopped and reported `Approved: False` with the unresolved feedback rather than looping forever or silently accepting a bad answer. The topics documented above focus on the approve path and the honesty-under-uncertainty path, since real runs don't always reproduce every branch on demand -- but the reject/give-up branch is real code, exercised and confirmed, not a hypothetical.
+Across 4 runs on varied topics, the Fact-Checker consistently did its job: approving clean, well-supported drafts (Examples 1, 2, 4), and — most importantly — actually catching and correcting two distinct unsupported claims in Example 3, requiring two full revision rounds before the draft was clean enough to approve. That's the conditional edge (`route_after_fact_check()` in `graph.py`) making a real, consequential decision at runtime, not just existing as unused code.
